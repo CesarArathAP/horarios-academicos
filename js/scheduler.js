@@ -50,89 +50,158 @@ class ScheduleGenerator {
   }
 
   /**
-   * Intenta asignar un horario a una materia de un grupo
+   * Obtiene todos los slots disponibles para un docente-materia-grupo
+   * Ordenados para mejor distribución a lo largo de la semana
    */
-  assignSchedule(group, subject) {
-    // Buscar un docente disponible y calificado
-    for (const teacher of teachers) {
-      // Verificar si el docente puede enseñar esta materia
-      if (!this.canTeachSubject(teacher, subject)) continue;
-
-      // Buscar un slot disponible para el docente y el grupo
-      for (const day of days) {
-        for (const hour of hours) {
-          // Validar todas las restricciones
-          if (
-            this.isTeacherAvailable(teacher, day, hour) &&
-            this.isTeacherSlotFree(teacher, day, hour) &&
-            this.isGroupSlotFree(group, day, hour)
-          ) {
-            // Asignación exitosa
-            const assignment = {
-              group: group.name,
-              subject,
-              teacher: teacher.name,
-              day,
-              hour,
-              error: null
-            };
-
-            // Registrar los slots como usados
-            this.usedSlots.teacher[`${teacher.id}-${day}-${hour}`] = true;
-            this.usedSlots.group[`${group.id}-${day}-${hour}`] = true;
-
-            this.schedule.push(assignment);
-            return true;
-          }
+  getAvailableSlots(teacher, group) {
+    const slots = [];
+    
+    for (const day of days) {
+      for (const hour of hours) {
+        if (
+          this.isTeacherAvailable(teacher, day, hour) &&
+          this.isTeacherSlotFree(teacher, day, hour) &&
+          this.isGroupSlotFree(group, day, hour)
+        ) {
+          slots.push({ day, hour });
         }
       }
     }
-
-    // No se pudo asignar
-    const error = this.getErrorReason(group, subject);
-    this.schedule.push({
-      group: group.name,
-      subject,
-      teacher: "N/A",
-      day: "N/A",
-      hour: "N/A",
-      error
-    });
-    this.errors.push(error);
-    return false;
+    
+    return slots;
   }
 
   /**
-   * Determina la razón del error de asignación
+   * Cuenta cuántas clases tiene un grupo en un día específico
    */
-  getErrorReason(group, subject) {
-    const capableTeachers = teachers.filter(t => t.subjects.includes(subject));
+  countGroupClassesInDay(group, day) {
+    return this.schedule.filter(
+      s => s.group === group.name && s.day === day && !s.error
+    ).length;
+  }
 
-    if (capableTeachers.length === 0) {
-      return "No hay docente calificado para enseñar esta materia";
-    }
+  /**
+   * Selecciona el mejor slot disponible priorizando distribución en la semana
+   */
+  selectBestSlot(slots, group) {
+    if (slots.length === 0) return null;
+    if (slots.length === 1) return slots[0];
 
-    // Verificar disponibilidad de docentes
-    const availableTeachers = capableTeachers.filter(teacher => {
-      for (const day of days) {
-        for (const hour of hours) {
-          if (
-            this.isTeacherAvailable(teacher, day, hour) &&
-            this.isTeacherSlotFree(teacher, day, hour) &&
-            this.isGroupSlotFree(group, day, hour)
-          ) {
-            return true;
-          }
-        }
-      }
-      return false;
+    // Contar clases por día para este grupo
+    const classesPerDay = {};
+    days.forEach(day => {
+      classesPerDay[day] = this.countGroupClassesInDay(group, day);
     });
 
-    if (availableTeachers.length === 0) {
-      return "No hay disponibilidad de horario para esta materia";
+    // Agrupar slots por día
+    const slotsByDay = {};
+    slots.forEach(slot => {
+      if (!slotsByDay[slot.day]) {
+        slotsByDay[slot.day] = [];
+      }
+      slotsByDay[slot.day].push(slot);
+    });
+
+    // Buscar el día con menos clases
+    let minClasses = Infinity;
+    let preferredDay = null;
+
+    for (const day of days) {
+      if (slotsByDay[day] && classesPerDay[day] < minClasses) {
+        minClasses = classesPerDay[day];
+        preferredDay = day;
+      }
     }
 
-    return "No fue posible asignar horario";
+    // Si encontramos un día preferido, seleccionar un slot de ese día
+    if (preferredDay && slotsByDay[preferredDay]) {
+      const daySlots = slotsByDay[preferredDay];
+      // Seleccionar una hora aleatoria del día (para más variedad)
+      return daySlots[Math.floor(Math.random() * daySlots.length)];
+    }
+
+    // Si no, seleccionar un slot aleatorio de todos
+    return slots[Math.floor(Math.random() * slots.length)];
+  }
+
+  /**
+   * Intenta asignar un horario a una materia de un grupo
+   * Usa estrategia inteligente de distribución por días de la semana
+   */
+  assignSchedule(group, subject) {
+    // Filtrar docentes que pueden enseñar esta materia
+    const capableTeachers = teachers.filter(t => this.canTeachSubject(t, subject));
+
+    if (capableTeachers.length === 0) {
+      this.schedule.push({
+        group: group.name,
+        subject,
+        teacher: "N/A",
+        day: "N/A",
+        hour: "N/A",
+        error: "No hay docente calificado para enseñar esta materia"
+      });
+      this.errors.push("No hay docente calificado para enseñar esta materia");
+      return false;
+    }
+
+    // Obtener docentes con sus slots disponibles
+    const teachersWithSlots = capableTeachers
+      .map(teacher => ({
+        teacher,
+        slots: this.getAvailableSlots(teacher, group)
+      }))
+      .filter(t => t.slots.length > 0)
+      .sort((a, b) => a.slots.length - b.slots.length); // Docentes con menos disponibilidad primero
+
+    if (teachersWithSlots.length === 0) {
+      this.schedule.push({
+        group: group.name,
+        subject,
+        teacher: "N/A",
+        day: "N/A",
+        hour: "N/A",
+        error: "No hay disponibilidad de horario para esta materia"
+      });
+      this.errors.push("No hay disponibilidad de horario para esta materia");
+      return false;
+    }
+
+    // Seleccionar el primer docente disponible y su mejor slot distribuido
+    const { teacher, slots } = teachersWithSlots[0];
+    const slot = this.selectBestSlot(slots, group);
+
+    if (!slot) {
+      this.schedule.push({
+        group: group.name,
+        subject,
+        teacher: "N/A",
+        day: "N/A",
+        hour: "N/A",
+        error: "No fue posible asignar horario"
+      });
+      this.errors.push("No fue posible asignar horario");
+      return false;
+    }
+
+    const { day, hour } = slot;
+
+    // Asignación exitosa
+    const assignment = {
+      group: group.name,
+      subject,
+      teacher: teacher.name,
+      day,
+      hour,
+      error: null
+    };
+
+    // Registrar los slots como usados
+    this.usedSlots.teacher[`${teacher.id}-${day}-${hour}`] = true;
+    this.usedSlots.group[`${group.id}-${day}-${hour}`] = true;
+
+    this.schedule.push(assignment);
+    return true;
   }
 
   /**

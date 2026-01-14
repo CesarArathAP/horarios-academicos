@@ -21,7 +21,7 @@ export const teachers = [
       Martes: ["10:00", "12:00"],
       Miércoles: ["08:00", "16:00"],
       Jueves: ["12:00", "14:00"],
-      Viernes: ["08:00", "10:00"]
+      Viernes: ["08:00", "10:00", "12:00", "16:00"]
     }
   },
   {
@@ -31,8 +31,9 @@ export const teachers = [
     availability: {
       Lunes: ["12:00", "14:00"],
       Martes: ["08:00", "10:00"],
+      Miércoles: ["12:00", "14:00"],
       Jueves: ["08:00", "10:00", "16:00"],
-      Viernes: ["12:00", "14:00"]
+      Viernes: ["10:00", "12:00", "14:00", "16:00"]
     }
   },
   {
@@ -44,7 +45,7 @@ export const teachers = [
       Martes: ["14:00", "16:00"],
       Miércoles: ["10:00", "12:00"],
       Jueves: ["14:00"],
-      Viernes: ["16:00"]
+      Viernes: ["08:00", "14:00", "16:00"]
     }
   },
   {
@@ -56,7 +57,7 @@ export const teachers = [
       Martes: ["12:00", "16:00"],
       Miércoles: ["14:00"],
       Jueves: ["10:00", "16:00"],
-      Viernes: ["14:00"]
+      Viernes: ["10:00", "12:00", "14:00"]
     }
   }
 ];
@@ -85,16 +86,16 @@ export const groups = [
   {
     id: 1,
     name: "Grupo A",
-    subjects: ["Matemáticas", "Historia", "Física"]
+    subjects: ["Matemáticas", "Física", "Química", "Historia", "Biología", "Geografía"]
   },
   {
     id: 2,
     name: "Grupo B",
-    subjects: ["Química", "Biología", "Geografía"]
+    subjects: ["Matemáticas", "Física", "Química", "Historia", "Biología", "Geografía"]
   },
   {
     id: 3,
     name: "Grupo C",
-    subjects: ["Matemáticas", "Química", "Historia"]
+    subjects: ["Matemáticas", "Física", "Química", "Historia", "Biología", "Geografía"]
   }
 ];

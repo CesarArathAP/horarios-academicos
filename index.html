@@ -8,21 +8,81 @@
 </head>
 <body>
   <div class="container">
-    <h1>Asignación de Horarios Académicos</h1>
-    <button id="generateBtn">Generar horario</button>
+    <header class="header">
+      <h1>Asignación de Horarios Académicos</h1>
+      <p class="subtitle">Sistema de generación automática de horarios para grupos académicos</p>
+    </header>
 
-    <table id="scheduleTable">
-      <thead>
-        <tr>
-          <th>Día</th>
-          <th>Hora</th>
-          <th>Grupo</th>
-          <th>Materia</th>
-          <th>Docente</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <!-- Sección de Control -->
+    <section class="controls-section">
+      <div class="button-group">
+        <button id="generateBtn" class="btn btn-primary">Generar Horario</button>
+        <button id="resetBtn" class="btn btn-secondary">Reiniciar</button>
+      </div>
+    </section>
+
+    <!-- Sección de Profesores -->
+    <section class="teachers-section">
+      <h2>👨‍🏫 Información de Docentes</h2>
+      <table id="teachersTable" class="teachers-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Materias que Enseña</th>
+            <th>Disponibilidad Horaria</th>
+          </tr>
+        </thead>
+        <tbody id="teachersTableBody">
+          <!-- Se llena dinámicamente con JavaScript -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Sección de 3 Contenedores (Materias, Grupos, Info) -->
+    <section class="info-section">
+      <div class="info-containers">
+        <div class="info-container">
+          <h3>📚 Materias Disponibles</h3>
+          <div id="subjectsContainer" class="items-list">
+            <!-- Se llena dinámicamente -->
+          </div>
+        </div>
+        <div class="info-container">
+          <h3>👥 Grupos</h3>
+          <div id="groupsContainer" class="items-list">
+            <!-- Se llena dinámicamente -->
+          </div>
+        </div>
+        <div class="info-container">
+          <h3>📊 Estadísticas</h3>
+          <div id="statsContainer" class="items-list">
+            <!-- Se llena dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección de Horario General de Docentes -->
+    <section class="general-schedule-section">
+      <h2>📅 Horario General de Docentes</h2>
+      <div id="generalScheduleContainer" class="general-schedule-container">
+        <!-- Se llena dinámicamente -->
+      </div>
+    </section>
+
+    <!-- Sección de Horarios por Grupo -->
+    <section class="group-schedules-section">
+      <h2>📋 Horarios de Grupos Académicos</h2>
+      <div id="groupSchedulesContainer" class="group-schedules-grid">
+        <!-- Se llena dinámicamente con las tablas de cada grupo -->
+      </div>
+
+      <!-- Resumen de Asignación -->
+      <div id="summaryContainer" class="summary-container">
+        <!-- Se llena dinámicamente -->
+      </div>
+    </section>
   </div>
 
   <script type="module" src="js/app.js"></script>
