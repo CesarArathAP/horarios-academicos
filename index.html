@@ -17,47 +17,57 @@
     <section class="controls-section">
       <div class="button-group">
         <button id="generateBtn" class="btn btn-primary">Generar Horario</button>
+        <button id="generateVariableBtn" class="btn btn-success">Generar Horario (Variado)</button>
         <button id="resetBtn" class="btn btn-secondary">Reiniciar</button>
+      </div>
+      <div class="variability-info">
+        <p><strong>Generar Horario:</strong> Asigna materias de forma consistente</p>
+        <p><strong>Generar Horario (Variado):</strong> Asigna materias de diferentes formas, variando días y docentes</p>
       </div>
     </section>
 
     <!-- Sección de Profesores -->
-    <section class="teachers-section">
-      <h2>👨‍🏫 Información de Docentes</h2>
-      <table id="teachersTable" class="teachers-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Materias que Enseña</th>
-            <th>Disponibilidad Horaria</th>
-          </tr>
-        </thead>
-        <tbody id="teachersTableBody">
-          <!-- Se llena dinámicamente con JavaScript -->
-        </tbody>
-      </table>
-    </section>
-
-    <!-- Sección de 3 Contenedores (Materias, Grupos, Info) -->
-    <section class="info-section">
-      <div class="info-containers">
-        <div class="info-container">
-          <h3>📚 Materias Disponibles</h3>
-          <div id="subjectsContainer" class="items-list">
-            <!-- Se llena dinámicamente -->
-          </div>
+    <!-- Sección combinada: Docentes + Materias/Grupos/Estadísticas -->
+    <section class="combined-section">
+      <div class="combined-container">
+        <!-- Panel de Docentes -->
+        <div class="teachers-panel">
+          <h2>👨‍🏫 Información de Docentes</h2>
+          <table id="teachersTable" class="teachers-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Materias que Enseña</th>
+                <th>Disponibilidad Horaria</th>
+              </tr>
+            </thead>
+            <tbody id="teachersTableBody">
+              <!-- Se llena dinámicamente con JavaScript -->
+            </tbody>
+          </table>
         </div>
-        <div class="info-container">
-          <h3>👥 Grupos</h3>
-          <div id="groupsContainer" class="items-list">
-            <!-- Se llena dinámicamente -->
-          </div>
-        </div>
-        <div class="info-container">
-          <h3>📊 Estadísticas</h3>
-          <div id="statsContainer" class="items-list">
-            <!-- Se llena dinámicamente -->
+        
+        <!-- Panel de Información (Materias, Grupos, Estadísticas) -->
+        <div class="info-panel">
+          <div class="info-containers">
+            <div class="info-container">
+              <h3>📚 Materias Disponibles</h3>
+              <div id="subjectsContainer" class="items-list">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+            <div class="info-container">
+              <h3>👥 Grupos</h3>
+              <div id="groupsContainer" class="items-list">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+            <!-- <div class="info-container">
+              <h3>📊 Estadísticas</h3>
+              <div id="statsContainer" class="items-list">
+              </div>
+            </div> -->
           </div>
         </div>
       </div>

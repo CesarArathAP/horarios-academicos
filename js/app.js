@@ -2,6 +2,7 @@ import { generateSchedule } from "./scheduler.js";
 import { teachers, subjects, groups, days, hours } from "./data.js";
 
 const generateBtn = document.getElementById("generateBtn");
+const generateVariableBtn = document.getElementById("generateVariableBtn");
 const resetBtn = document.getElementById("resetBtn");
 const subjectsContainer = document.getElementById("subjectsContainer");
 const groupsContainer = document.getElementById("groupsContainer");
@@ -349,7 +350,10 @@ function showSuccessAlert() {
 /**
  * Genera y muestra el horario
  */
-generateBtn.addEventListener("click", () => {
+/**
+ * Función genérica para generar y mostrar horarios
+ */
+function generateAndDisplaySchedule(useVariability = true) {
   // Limpiar contenedores
   summaryContainer.innerHTML = "";
   generalScheduleContainer.innerHTML = "";
@@ -359,7 +363,7 @@ generateBtn.addEventListener("click", () => {
   showSuccessAlert();
 
   // Generar nuevo horario
-  const schedule = generateSchedule();
+  const schedule = generateSchedule(useVariability);
   const summary = window.scheduleSummary;
 
   // Crear resumen
@@ -394,6 +398,14 @@ generateBtn.addEventListener("click", () => {
 
   // Mostrar horarios por grupo
   displayGroupSchedules(schedule);
+}
+
+generateBtn.addEventListener("click", () => {
+  generateAndDisplaySchedule(false);
+});
+
+generateVariableBtn.addEventListener("click", () => {
+  generateAndDisplaySchedule(true);
 });
 
 // Event listener para reiniciar

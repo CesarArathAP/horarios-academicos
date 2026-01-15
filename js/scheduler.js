@@ -82,8 +82,9 @@ class ScheduleGenerator {
 
   /**
    * Selecciona el mejor slot disponible priorizando distribución en la semana
+   * Introduce variabilidad en la selección de slots
    */
-  selectBestSlot(slots, group) {
+  selectBestSlot(slots, group, useVariability = true) {
     if (slots.length === 0) return null;
     if (slots.length === 1) return slots[0];
 
@@ -102,22 +103,49 @@ class ScheduleGenerator {
       slotsByDay[slot.day].push(slot);
     });
 
-    // Buscar el día con menos clases
-    let minClasses = Infinity;
-    let preferredDay = null;
+    // Con variabilidad: considerar múltiples días viables
+    if (useVariability) {
+      // Encontrar los días con menos clases (pueden ser varios con igual cantidad)
+      let minClasses = Infinity;
+      const preferredDays = [];
 
-    for (const day of days) {
-      if (slotsByDay[day] && classesPerDay[day] < minClasses) {
-        minClasses = classesPerDay[day];
-        preferredDay = day;
+      for (const day of days) {
+        if (slotsByDay[day]) {
+          const dayClassCount = classesPerDay[day];
+          if (dayClassCount < minClasses) {
+            minClasses = dayClassCount;
+            preferredDays.length = 0;
+            preferredDays.push(day);
+          } else if (dayClassCount === minClasses) {
+            preferredDays.push(day);
+          }
+        }
       }
-    }
 
-    // Si encontramos un día preferido, seleccionar un slot de ese día
-    if (preferredDay && slotsByDay[preferredDay]) {
-      const daySlots = slotsByDay[preferredDay];
-      // Seleccionar una hora aleatoria del día (para más variedad)
-      return daySlots[Math.floor(Math.random() * daySlots.length)];
+      // Seleccionar un día aleatorio de los preferidos (para variabilidad)
+      if (preferredDays.length > 0) {
+        const randomDay = preferredDays[Math.floor(Math.random() * preferredDays.length)];
+        if (slotsByDay[randomDay]) {
+          const daySlots = slotsByDay[randomDay];
+          return daySlots[Math.floor(Math.random() * daySlots.length)];
+        }
+      }
+    } else {
+      // Sin variabilidad: usar el primer día con menos clases
+      let minClasses = Infinity;
+      let preferredDay = null;
+
+      for (const day of days) {
+        if (slotsByDay[day] && classesPerDay[day] < minClasses) {
+          minClasses = classesPerDay[day];
+          preferredDay = day;
+        }
+      }
+
+      if (preferredDay && slotsByDay[preferredDay]) {
+        const daySlots = slotsByDay[preferredDay];
+        return daySlots[0];
+      }
     }
 
     // Si no, seleccionar un slot aleatorio de todos
@@ -126,9 +154,9 @@ class ScheduleGenerator {
 
   /**
    * Intenta asignar un horario a una materia de un grupo
-   * Usa estrategia inteligente de distribución por días de la semana
+   * Usa estrategia inteligente de distribución por días de la semana y docentes variados
    */
-  assignSchedule(group, subject) {
+  assignSchedule(group, subject, useVariability = true) {
     // Filtrar docentes que pueden enseñar esta materia
     const capableTeachers = teachers.filter(t => this.canTeachSubject(t, subject));
 
@@ -151,8 +179,7 @@ class ScheduleGenerator {
         teacher,
         slots: this.getAvailableSlots(teacher, group)
       }))
-      .filter(t => t.slots.length > 0)
-      .sort((a, b) => a.slots.length - b.slots.length); // Docentes con menos disponibilidad primero
+      .filter(t => t.slots.length > 0);
 
     if (teachersWithSlots.length === 0) {
       this.schedule.push({
@@ -167,9 +194,19 @@ class ScheduleGenerator {
       return false;
     }
 
-    // Seleccionar el primer docente disponible y su mejor slot distribuido
-    const { teacher, slots } = teachersWithSlots[0];
-    const slot = this.selectBestSlot(slots, group);
+    // Seleccionar docente con variabilidad
+    let selectedTeacher;
+    if (useVariability && teachersWithSlots.length > 1) {
+      // Seleccionar un docente aleatorio de los disponibles (introduce variabilidad)
+      selectedTeacher = teachersWithSlots[Math.floor(Math.random() * teachersWithSlots.length)];
+    } else {
+      // Sin variabilidad: seleccionar docente con menos disponibilidad (para priorizar)
+      teachersWithSlots.sort((a, b) => a.slots.length - b.slots.length);
+      selectedTeacher = teachersWithSlots[0];
+    }
+
+    const { teacher, slots } = selectedTeacher;
+    const slot = this.selectBestSlot(slots, group, useVariability);
 
     if (!slot) {
       this.schedule.push({
@@ -206,8 +243,9 @@ class ScheduleGenerator {
 
   /**
    * Genera el horario completo
+   * @param {boolean} useVariability - Si true, introduce variabilidad en las asignaciones
    */
-  generate() {
+  generate(useVariability = true) {
     this.schedule = [];
     this.usedSlots = { teacher: {}, group: {} };
     this.errors = [];
@@ -215,7 +253,7 @@ class ScheduleGenerator {
     // Asignar cada materia de cada grupo
     for (const group of groups) {
       for (const subject of group.subjects) {
-        this.assignSchedule(group, subject);
+        this.assignSchedule(group, subject, useVariability);
       }
     }
 
@@ -241,10 +279,11 @@ class ScheduleGenerator {
 
 /**
  * Función principal para generar el horario
+ * @param {boolean} useVariability - Si true, introduce variabilidad en las asignaciones
  */
-export function generateSchedule() {
+export function generateSchedule(useVariability = true) {
   const generator = new ScheduleGenerator();
-  const schedule = generator.generate();
+  const schedule = generator.generate(useVariability);
   
   // Guardar el resumen en window para uso en app.js
   window.scheduleSummary = generator.getSummary();
