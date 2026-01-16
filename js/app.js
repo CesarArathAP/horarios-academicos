@@ -1,5 +1,6 @@
 import { generateSchedule } from "./scheduler.js";
 import { teachers, subjects, groups, days, hours } from "./data.js";
+import { initDragAndDrop, updateDraggableCells } from "./dragdrop.js";
 
 const generateBtn = document.getElementById("generateBtn");
 const generateVariableBtn = document.getElementById("generateVariableBtn");
@@ -11,6 +12,26 @@ const teachersContainer = document.getElementById("teachersContainer");
 const summaryContainer = document.getElementById("summaryContainer");
 const generalScheduleContainer = document.getElementById("generalScheduleContainer");
 const groupSchedulesContainer = document.getElementById("groupSchedulesContainer");
+
+/**
+ * Formatea el rango horario de una clase
+ */
+function formatTimeRange(startHour, endHour, duration) {
+  // Si no hay hora válida, retornar N/A
+  if (startHour === "N/A" || !startHour) return "N/A";
+  
+  // Si es de 2 horas y tiene endHour válido
+  if (duration === 2 && endHour && endHour !== "N/A") {
+    return `${startHour} - ${endHour}`;
+  }
+  
+  // Si es de 1 hora, solo mostrar la hora de inicio
+  if (duration === 1 || !duration) {
+    return startHour;
+  }
+  
+  return startHour;
+}
 
 /**
  * Muestra la información de los docentes en una tabla
@@ -120,10 +141,17 @@ function displayGeneralTeacherSchedule(schedule) {
   // Llenar la matriz con todas las clases
   schedule.forEach((item) => {
     if (!item.error && scheduleMatrix[item.day]) {
+      const duration = item.duration || 1;
+      const endHour = item.endHour || null;
+      const timeRange = formatTimeRange(item.hour, endHour, duration);
+      
       scheduleMatrix[item.day][item.hour].push({
         subject: item.subject,
         teacher: item.teacher,
-        group: item.group
+        group: item.group,
+        duration: duration,
+        endHour: endHour,
+        timeRange: timeRange
       });
     }
   });
@@ -143,12 +171,26 @@ function displayGeneralTeacherSchedule(schedule) {
         const classContent = classes
           .map((c) => {
             const colorClass = subjectColors[c.subject] || "default";
-            return `<div class="class-cell class-${colorClass}"><strong>${c.subject}</strong><br><small>${c.teacher}</small><br><small style="opacity: 0.8;">${c.group}</small></div>`;
+            return `<div class="class-cell class-${colorClass} draggable-class" 
+              draggable="true" 
+              data-subject="${c.subject}" 
+              data-teacher="${c.teacher}" 
+              data-group="${c.group}" 
+              data-day="${day}" 
+              data-hour="${hour}" 
+              data-duration="${c.duration || 1}"
+              data-type="general"
+              title="Arrastra para mover">
+              <strong>${c.subject}</strong><br>
+              <small>${c.timeRange}</small><br>
+              <small>${c.teacher}</small><br>
+              <small style="opacity: 0.8;">${c.group}</small>
+            </div>`;
           })
           .join("");
-        tableHTML += `<td>${classContent}</td>`;
+        tableHTML += `<td class="droppable-slot" data-day="${day}" data-hour="${hour}">${classContent}</td>`;
       } else {
-        tableHTML += `<td style="background: #f9f9f9; color: #ccc;">-</td>`;
+        tableHTML += `<td class="droppable-slot" data-day="${day}" data-hour="${hour}" style="background: #f9f9f9; color: #ccc;">-</td>`;
       }
     });
     tableHTML += `</tr>`;
@@ -205,7 +247,10 @@ function displayGroupSchedules(schedule) {
       if (!item.error && scheduleMatrix[item.day]) {
         scheduleMatrix[item.day][item.hour] = {
           subject: item.subject,
-          teacher: item.teacher
+          teacher: item.teacher,
+          duration: item.duration || 1,
+          endHour: item.endHour,
+          timeRange: formatTimeRange(item.hour, item.endHour, item.duration || 1)
         };
       }
     });
@@ -223,12 +268,26 @@ function displayGroupSchedules(schedule) {
         const cell = scheduleMatrix[day][hour];
         if (cell) {
           const colorClass = subjectColors[cell.subject] || "default";
-          tableHTML += `<td class="group-class-cell group-class-${colorClass}">
-            <strong>${cell.subject}</strong><br>
-            <small>${cell.teacher}</small>
+          tableHTML += `<td class="group-class-cell group-class-${colorClass} droppable-slot" 
+            data-day="${day}" 
+            data-hour="${hour}">
+            <div class="draggable-class"
+              draggable="true"
+              data-subject="${cell.subject}"
+              data-teacher="${cell.teacher}"
+              data-group="${groupName}"
+              data-day="${day}"
+              data-hour="${hour}"
+              data-duration="${cell.duration || 1}"
+              data-type="group"
+              title="Arrastra para mover">
+              <strong>${cell.subject}</strong><br>
+              <small>${cell.timeRange}</small><br>
+              <small>${cell.teacher}</small>
+            </div>
           </td>`;
         } else {
-          tableHTML += `<td style="background: #f9f9f9; color: #ccc;">-</td>`;
+          tableHTML += `<td class="droppable-slot" data-day="${day}" data-hour="${hour}" style="background: #f9f9f9; color: #ccc;">-</td>`;
         }
       });
       tableHTML += `</tr>`;
@@ -322,34 +381,21 @@ function resetApplication() {
 }
 
 /**
- * Muestra una alerta de éxito
+ * Muestra una alerta estilizada
  */
-function showSuccessAlert() {
-  // Crear alerta
-  const alert = document.createElement("div");
-  alert.className = "success-alert";
-  alert.innerHTML = `
-    <span>Horarios generados correctamente</span>
-    <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
-  `;
-
-  // Insertar al principio del contenedor principal
-  const mainContainer = document.querySelector("main");
-  if (mainContainer) {
-    mainContainer.insertBefore(alert, mainContainer.firstChild);
-  }
-
-  // Auto-cerrar después de 5 segundos
+function showAlert(type, message) {
+  const alert = document.createElement('div');
+  alert.className = `drag-alert drag-alert-${type}`;
+  alert.innerHTML = message;
+  
+  document.body.appendChild(alert);
+  
   setTimeout(() => {
-    if (alert.parentElement) {
-      alert.remove();
-    }
-  }, 5000);
+    alert.style.animation = 'slideOut 0.3s ease forwards';
+    setTimeout(() => alert.remove(), 300);
+  }, 3000);
 }
 
-/**
- * Genera y muestra el horario
- */
 /**
  * Función genérica para generar y mostrar horarios
  */
@@ -360,11 +406,16 @@ function generateAndDisplaySchedule(useVariability = true) {
   groupSchedulesContainer.innerHTML = "";
 
   // Mostrar alerta de éxito
-  showSuccessAlert();
+  // Mostrar alerta de éxito
+  showAlert('success', '✅ Horarios generados correctamente');
 
   // Generar nuevo horario
   const schedule = generateSchedule(useVariability);
   const summary = window.scheduleSummary;
+
+  // Guardar datos globales para drag-drop
+  window.currentSchedule = schedule;
+  window.allTeachers = teachers;
 
   // Crear resumen
   const summaryHTML = `
@@ -398,6 +449,14 @@ function generateAndDisplaySchedule(useVariability = true) {
 
   // Mostrar horarios por grupo
   displayGroupSchedules(schedule);
+
+  // Inicializar drag-and-drop
+  window.refreshScheduleDisplay = () => {
+    displayGeneralTeacherSchedule(window.currentSchedule);
+    displayGroupSchedules(window.currentSchedule);
+  };
+  initDragAndDrop(schedule, teachers);
+  updateDraggableCells();
 }
 
 generateBtn.addEventListener("click", () => {
@@ -416,6 +475,7 @@ resetBtn.addEventListener("click", () => {
     )
   ) {
     resetApplication();
+    showAlert('info', '🔄 Horarios reiniciados correctamente');
   }
 });
 
@@ -426,3 +486,7 @@ window.addEventListener("load", () => {
   displayGroups();
   displayStats();
 });
+
+/**
+ * Inicializa el rastreador de secciones para actualizar el menú y breadcrumb
+ */

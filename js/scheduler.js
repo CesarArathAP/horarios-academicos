@@ -81,6 +81,45 @@ class ScheduleGenerator {
   }
 
   /**
+   * Obtiene la siguiente hora en la lista
+   */
+  getNextHour(currentHour) {
+    const currentIndex = hours.indexOf(currentHour);
+    if (currentIndex === -1 || currentIndex === hours.length - 1) return null;
+    return hours[currentIndex + 1];
+  }
+
+  /**
+   * Verifica si una clase puede durar 2 horas (siguientes slots disponibles)
+   */
+  canBe2Hours(teacher, group, day, startHour) {
+    const nextHour = this.getNextHour(startHour);
+    if (!nextHour) return false;
+
+    return (
+      this.isTeacherAvailable(teacher, day, nextHour) &&
+      this.isTeacherSlotFree(teacher, day, nextHour) &&
+      this.isGroupSlotFree(group, day, nextHour)
+    );
+  }
+
+  /**
+   * Marca los slots como usados para una clase
+   */
+  markSlotsAsUsed(teacher, group, day, startHour, duration = 1) {
+    this.usedSlots.teacher[`${teacher.id}-${day}-${startHour}`] = true;
+    this.usedSlots.group[`${group.id}-${day}-${startHour}`] = true;
+
+    if (duration === 2) {
+      const nextHour = this.getNextHour(startHour);
+      if (nextHour) {
+        this.usedSlots.teacher[`${teacher.id}-${day}-${nextHour}`] = true;
+        this.usedSlots.group[`${group.id}-${day}-${nextHour}`] = true;
+      }
+    }
+  }
+
+  /**
    * Selecciona el mejor slot disponible priorizando distribución en la semana
    * Introduce variabilidad en la selección de slots
    */
@@ -167,6 +206,8 @@ class ScheduleGenerator {
         teacher: "N/A",
         day: "N/A",
         hour: "N/A",
+        endHour: "N/A",
+        duration: 1,
         error: "No hay docente calificado para enseñar esta materia"
       });
       this.errors.push("No hay docente calificado para enseñar esta materia");
@@ -188,6 +229,8 @@ class ScheduleGenerator {
         teacher: "N/A",
         day: "N/A",
         hour: "N/A",
+        endHour: "N/A",
+        duration: 1,
         error: "No hay disponibilidad de horario para esta materia"
       });
       this.errors.push("No hay disponibilidad de horario para esta materia");
@@ -215,6 +258,8 @@ class ScheduleGenerator {
         teacher: "N/A",
         day: "N/A",
         hour: "N/A",
+        endHour: "N/A",
+        duration: 1,
         error: "No fue posible asignar horario"
       });
       this.errors.push("No fue posible asignar horario");
@@ -222,20 +267,25 @@ class ScheduleGenerator {
     }
 
     const { day, hour } = slot;
-
     // Asignación exitosa
+    // Determinar duración: 2 horas si es posible, sino 1 hora
+    const duration = this.canBe2Hours(teacher, group, day, hour) ? 2 : 1;
+
+    const nextHour = duration === 2 ? this.getNextHour(hour) : null;
+
     const assignment = {
       group: group.name,
       subject,
       teacher: teacher.name,
       day,
       hour,
+      endHour: nextHour,
+      duration,
       error: null
     };
 
     // Registrar los slots como usados
-    this.usedSlots.teacher[`${teacher.id}-${day}-${hour}`] = true;
-    this.usedSlots.group[`${group.id}-${day}-${hour}`] = true;
+    this.markSlotsAsUsed(teacher, group, day, hour, duration);
 
     this.schedule.push(assignment);
     return true;

@@ -2,7 +2,7 @@
  * Configuración de días y horas disponibles
  */
 export const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-export const hours = ["08:00", "10:00", "12:00", "14:00", "16:00"];
+export const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 /**
  * Modelo de Docentes
@@ -17,11 +17,11 @@ export const teachers = [
     name: "Ana López",
     subjects: ["Matemáticas", "Física"],
     availability: {
-      Lunes: ["08:00", "10:00", "14:00"],
-      Martes: ["10:00", "12:00"],
-      Miércoles: ["08:00", "16:00"],
-      Jueves: ["12:00", "14:00"],
-      Viernes: ["08:00", "10:00", "12:00", "16:00"]
+      Lunes: ["08:00", "09:00", "10:00", "14:00", "15:00"],
+      Martes: ["10:00", "11:00", "12:00"],
+      Miércoles: ["08:00", "09:00", "16:00", "17:00"],
+      Jueves: ["12:00", "13:00", "14:00"],
+      Viernes: ["08:00", "09:00", "10:00", "12:00", "16:00", "17:00"]
     }
   },
   {
@@ -29,11 +29,11 @@ export const teachers = [
     name: "Carlos Pérez",
     subjects: ["Historia", "Geografía"],
     availability: {
-      Lunes: ["12:00", "14:00"],
-      Martes: ["08:00", "10:00"],
-      Miércoles: ["12:00", "14:00"],
-      Jueves: ["08:00", "10:00", "16:00"],
-      Viernes: ["10:00", "12:00", "14:00", "16:00"]
+      Lunes: ["12:00", "13:00", "14:00"],
+      Martes: ["08:00", "09:00", "10:00"],
+      Miércoles: ["12:00", "13:00", "14:00"],
+      Jueves: ["08:00", "09:00", "16:00", "17:00"],
+      Viernes: ["10:00", "11:00", "12:00", "14:00", "15:00"]
     }
   },
   {
@@ -41,11 +41,11 @@ export const teachers = [
     name: "María García",
     subjects: ["Física", "Química"],
     availability: {
-      Lunes: ["16:00"],
-      Martes: ["14:00", "16:00"],
-      Miércoles: ["10:00", "12:00"],
-      Jueves: ["14:00"],
-      Viernes: ["08:00", "14:00", "16:00"]
+      Lunes: ["16:00", "17:00"],
+      Martes: ["14:00", "15:00", "16:00"],
+      Miércoles: ["10:00", "11:00", "12:00"],
+      Jueves: ["14:00", "15:00"],
+      Viernes: ["08:00", "09:00", "14:00", "15:00", "16:00"]
     }
   },
   {
@@ -53,11 +53,11 @@ export const teachers = [
     name: "Juan Rodríguez",
     subjects: ["Química", "Biología"],
     availability: {
-      Lunes: ["10:00"],
-      Martes: ["12:00", "16:00"],
-      Miércoles: ["14:00"],
-      Jueves: ["10:00", "16:00"],
-      Viernes: ["10:00", "12:00", "14:00"]
+      Lunes: ["10:00", "11:00"],
+      Martes: ["12:00", "13:00", "16:00", "17:00"],
+      Miércoles: ["14:00", "15:00"],
+      Jueves: ["10:00", "11:00", "16:00"],
+      Viernes: ["10:00", "11:00", "12:00", "14:00", "15:00"]
     }
   }
 ];
